@@ -45,7 +45,7 @@ gulp.task('js', function() {
 	var jsbuild = gulp
 		.src(folder.src + 'js/**/*')
 		.pipe(deporder())
-		.pipe(concat('main.js'));
+		.pipe(concat('index.js'));
 
 	if (!devBuild) {
 		jsbuild = jsbuild.pipe(stripdebug()).pipe(uglify());
@@ -66,7 +66,7 @@ gulp.task('css', ['images'], function() {
 	// }
 
 	return gulp
-		.src(folder.src + 'css/main.scss')
+		.src(folder.src + 'css/index.css')
 		.pipe(
 			sass({
 				outputStyle: 'nested',
