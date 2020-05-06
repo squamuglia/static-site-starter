@@ -34,14 +34,17 @@ task('image', () => {
 		.pipe(connect.reload());
 });
 
-task('html', series('image'), () => {
-	const out = folder.dist;
+task(
+	'html',
+	series(parallel('image'), () => {
+		const out = folder.dist;
 
-	let page = src(folder.src + '*.html').pipe(newer(out));
-	page = page.pipe(htmlclean());
+		let page = src(folder.src + '*.html').pipe(newer(out));
+		page = page.pipe(htmlclean());
 
-	return page.pipe(dest(out)).pipe(connect.reload());
-});
+		return page.pipe(dest(out)).pipe(connect.reload());
+	})
+);
 
 task('js', () => {
 	let jsbuild = src(folder.src + 'js/**/*')
@@ -52,31 +55,34 @@ task('js', () => {
 		jsbuild = jsbuild.pipe(stripdebug()).pipe(uglify());
 	}
 
-	return jsbuild.pipe(dest(folder.dist + 'js/')).pipe(connect.reload());
+	return jsbuild.pipe(dest(folder.dist)).pipe(connect.reload());
 });
 
-task('css', series('image'), () =>
-	src(folder.src + 'styles/index.css')
-		.pipe(
-			postcss([
-				cssPresetEnv({
-					stage: 0,
-					features: {
-						'nesting-rules': true,
-					},
-				}),
-				cssNested,
-				cssImport,
-				cssCustomMedia,
-				cssCalc,
-				cssAssets({ loadPaths: ['assets/'] }),
-				autoprefixer,
-				cssMQPacker,
-				cssNano,
-			])
-		)
-		.pipe(dest(folder.dist + 'styles/'))
-		.pipe(connect.reload())
+task(
+	'css',
+	series(parallel('image'), () =>
+		src(folder.src + 'styles/index.css')
+			.pipe(
+				postcss([
+					cssPresetEnv({
+						stage: 0,
+						features: {
+							'nesting-rules': true,
+						},
+					}),
+					cssNested,
+					cssImport,
+					cssCustomMedia,
+					cssCalc,
+					cssAssets({ loadPaths: ['assets/'] }),
+					autoprefixer,
+					cssMQPacker,
+					cssNano,
+				])
+			)
+			.pipe(dest(folder.dist))
+			.pipe(connect.reload())
+	)
 );
 
 task('connect', () => connect.server({ root: 'build', livereload: true }));
