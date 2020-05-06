@@ -64,18 +64,18 @@ task(
 		src(folder.src + 'styles/index.css')
 			.pipe(
 				postcss([
+					cssImport,
+					cssNested,
+					cssCustomMedia,
+					autoprefixer,
 					cssPresetEnv({
 						stage: 0,
 						features: {
 							'nesting-rules': true,
 						},
 					}),
-					cssNested,
-					cssImport,
-					cssCustomMedia,
 					cssCalc,
 					cssAssets({ loadPaths: ['assets/'] }),
-					autoprefixer,
 					cssMQPacker,
 					cssNano,
 				])
@@ -85,7 +85,7 @@ task(
 	)
 );
 
-task('connect', () => connect.server({ root: 'build', livereload: true }));
+task('connect', () => connect.server({ root: 'dist', livereload: true }));
 
 task('watch', () => {
 	watch([folder.src + 'assets/**/*'], 'image');
