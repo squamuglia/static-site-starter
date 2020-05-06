@@ -1,100 +1,88 @@
-const gulp = require("gulp"),
-  newer = require("gulp-newer"),
-  imagemin = require("gulp-imagemin"),
-  htmlclean = require("gulp-htmlclean"),
-  concat = require("gulp-concat"),
-  deporder = require("gulp-deporder"),
-  stripdebug = require("gulp-strip-debug"),
-  uglify = require("gulp-uglify"),
-  postcss = require("gulp-postcss"),
-  assets = require("postcss-assets"),
-  autoprefixer = require("autoprefixer"),
-  mqpacker = require("css-mqpacker"),
-  cssnano = require("cssnano"),
-  connect = require("gulp-connect"),
-  presetEnv = require("postcss-preset-env"),
-  atImport = require("postcss-import"),
-  devBuild = process.env.NODE_ENV !== "production",
-  folder = {
-    src: "src/",
-    build: "build/"
-  };
+const { task, src, dest, watch, series } = require('gulp');
+const newer = require('gulp-newer');
+const imagemin = require('gulp-imagemin');
+const htmlclean = require('gulp-htmlclean');
+const concat = require('gulp-concat');
+const deporder = require('gulp-deporder');
+const stripdebug = require('gulp-strip-debug');
+const uglify = require('gulp-uglify');
+const postcss = require('gulp-postcss');
+const assets = require('postcss-assets');
+const autoprefixer = require('autoprefixer');
+const mqpacker = require('css-mqpacker');
+const cssnano = require('cssnano');
+const connect = require('gulp-connect');
+const presetEnv = require('postcss-preset-env');
+const atImport = require('postcss-import');
 
-gulp.task("images", function() {
-  const out = folder.build + "images/";
-  return gulp
-    .src(folder.src + "images/**/*")
-    .pipe(newer(out))
-    .pipe(imagemin({ optimizationLevel: 5 }))
-    .pipe(gulp.dest(out))
-    .pipe(connect.reload());
+const dev = process.env.NODE_ENV !== 'production';
+const folder = { src: 'src/', dist: 'dist/' };
+
+task('image', function () {
+	const out = folder.dist + 'images/';
+
+	return src(folder.src + 'images/**/*')
+		.pipe(newer(out))
+		.pipe(imagemin({ optimizationLevel: 5 }))
+		.pipe(dest(out))
+		.pipe(connect.reload());
 });
 
-gulp.task("html", ["images"], function() {
-  var out = folder.build,
-    page = gulp.src(folder.src + "*.html").pipe(newer(out));
+task('html', series('image'), () => {
+	const out = folder.dist;
 
-  // minify production code
-  // if (!devBuild) {
-  page = page.pipe(htmlclean());
-  // }
+	let page = src(folder.src + '*.html').pipe(newer(out));
+	page = page.pipe(htmlclean());
 
-  return page.pipe(gulp.dest(out)).pipe(connect.reload());
+	return page.pipe(dest(out)).pipe(connect.reload());
 });
 
-gulp.task("js", function() {
-  var jsbuild = gulp
-    .src(folder.src + "js/**/*")
-    .pipe(deporder())
-    .pipe(concat("index.js"));
+task('js', () => {
+	let jsbuild = src(folder.src + 'js/**/*')
+		.pipe(deporder())
+		.pipe(concat('index.js'));
 
-  if (!devBuild) {
-    jsbuild = jsbuild.pipe(stripdebug()).pipe(uglify());
-  }
+	if (!dev) {
+		jsbuild = jsbuild.pipe(stripdebug()).pipe(uglify());
+	}
 
-  return jsbuild.pipe(gulp.dest(folder.build + "js/")).pipe(connect.reload());
+	return jsbuild.pipe(dest(folder.dist + 'js/')).pipe(connect.reload());
 });
 
-gulp.task("css", ["images"], function() {
-  var postCssOpts = [
-    atImport(),
-    assets({ loadPaths: ["images/"] }),
-    autoprefixer(),
-    presetEnv({
-      stage: 0,
-      features: {
-        "nesting-rules": true
-      }
-    }),
-    mqpacker
-  ];
+task('css', series('image'), () =>
+	src(folder.src + 'css/index.css')
+		.pipe(
+			postcss([
+				atImport(),
+				assets({ loadPaths: ['images/'] }),
+				autoprefixer(),
+				presetEnv({
+					stage: 0,
+					features: {
+						'nesting-rules': true,
+					},
+				}),
+				mqpacker,
+				cssnano,
+			])
+		)
+		.pipe(dest(folder.dist + 'css/'))
+		.pipe(connect.reload())
+);
 
-  // if (!devBuild) {
-  postCssOpts.push(cssnano);
-  // }
+task('fonts', () =>
+	src(folder.src + 'fonts/**/*').pipe(dest(folder.dist + 'fonts/'))
+);
 
-  return gulp
-    .src(folder.src + "css/index.css")
-    .pipe(postcss(postCssOpts))
-    .pipe(gulp.dest(folder.build + "css/"))
-    .pipe(connect.reload());
+task('connect', () => connect.server({ root: 'build', livereload: true }));
+
+task('watch', () => {
+	watch([folder.src + 'images/**/*'], 'image');
+	watch([folder.src + '*.html'], 'html');
+	watch([folder.src + 'js/**/*'], 'js');
+	watch([folder.src + 'css/**/*'], 'css');
 });
 
-gulp.task("fonts", function() {
-  gulp.src(folder.src + "fonts/**/*").pipe(gulp.dest(folder.build + "fonts/"));
-});
+task('build', series('html', 'css', 'js', 'fonts'));
 
-gulp.task("connect", function() {
-  connect.server({ root: "build", livereload: true });
-});
-
-gulp.task("run", ["html", "css", "js", "fonts"]);
-
-gulp.task("watch", function() {
-  gulp.watch(folder.src + "images/**/*", ["images"]);
-  gulp.watch(folder.src + "*.html", ["html"]);
-  gulp.watch(folder.src + "js/**/*", ["js"]);
-  gulp.watch(folder.src + "css/**/*", ["css"]);
-});
-
-gulp.task("default", ["run", "connect", "watch"]);
+task('default', series('build', 'connect', 'watch'));
