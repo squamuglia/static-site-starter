@@ -1,4 +1,5 @@
-const { task, src, dest, watch, series } = require('gulp');
+const { task, src, dest, watch, series, parallel } = require('gulp');
+
 const newer = require('gulp-newer');
 const imagemin = require('gulp-imagemin');
 const htmlclean = require('gulp-htmlclean');
@@ -6,22 +7,27 @@ const concat = require('gulp-concat');
 const deporder = require('gulp-deporder');
 const stripdebug = require('gulp-strip-debug');
 const uglify = require('gulp-uglify');
-const postcss = require('gulp-postcss');
-const assets = require('postcss-assets');
-const autoprefixer = require('autoprefixer');
-const mqpacker = require('css-mqpacker');
-const cssnano = require('cssnano');
 const connect = require('gulp-connect');
-const presetEnv = require('postcss-preset-env');
-const atImport = require('postcss-import');
+
+const postcss = require('gulp-postcss');
+const cssAssets = require('postcss-assets');
+const autoprefixer = require('autoprefixer');
+const cssMQPacker = require('css-mqpacker');
+const cssNano = require('cssnano');
+const cssPresetEnv = require('postcss-preset-env');
+const cssImport = require('postcss-import');
+const cssNested = require('postcss-nested');
+const cssCalc = require('postcss-calc');
+const cssCustomMedia = require('postcss-custom-media');
+const discardComments = require('postcss-discard-comments');
 
 const dev = process.env.NODE_ENV !== 'production';
 const folder = { src: 'src/', dist: 'dist/' };
 
-task('image', function () {
-	const out = folder.dist + 'images/';
+task('image', () => {
+	const out = folder.dist + 'assets/';
 
-	return src(folder.src + 'images/**/*')
+	return src(folder.src + 'assets/**/*')
 		.pipe(newer(out))
 		.pipe(imagemin({ optimizationLevel: 5 }))
 		.pipe(dest(out))
@@ -50,39 +56,38 @@ task('js', () => {
 });
 
 task('css', series('image'), () =>
-	src(folder.src + 'css/index.css')
+	src(folder.src + 'styles/index.css')
 		.pipe(
 			postcss([
-				atImport(),
-				assets({ loadPaths: ['images/'] }),
-				autoprefixer(),
-				presetEnv({
+				cssPresetEnv({
 					stage: 0,
 					features: {
 						'nesting-rules': true,
 					},
 				}),
-				mqpacker,
-				cssnano,
+				cssNested,
+				cssImport,
+				cssCustomMedia,
+				cssCalc,
+				cssAssets({ loadPaths: ['assets/'] }),
+				autoprefixer,
+				cssMQPacker,
+				cssNano,
 			])
 		)
-		.pipe(dest(folder.dist + 'css/'))
+		.pipe(dest(folder.dist + 'styles/'))
 		.pipe(connect.reload())
-);
-
-task('fonts', () =>
-	src(folder.src + 'fonts/**/*').pipe(dest(folder.dist + 'fonts/'))
 );
 
 task('connect', () => connect.server({ root: 'build', livereload: true }));
 
 task('watch', () => {
-	watch([folder.src + 'images/**/*'], 'image');
+	watch([folder.src + 'assets/**/*'], 'image');
 	watch([folder.src + '*.html'], 'html');
 	watch([folder.src + 'js/**/*'], 'js');
-	watch([folder.src + 'css/**/*'], 'css');
+	watch([folder.src + 'styles/**/*'], 'css');
 });
 
-task('build', series('html', 'css', 'js', 'fonts'));
+task('build', parallel('html', 'css', 'js'));
 
 task('default', series('build', 'connect', 'watch'));
