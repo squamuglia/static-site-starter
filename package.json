@@ -8,10 +8,13 @@
 		"build": "rimraf ./dist && gulp build"
 	},
 	"dependencies": {
+		"@types/gulp-connect": "^5.0.3",
 		"autoprefixer": "^9.5.0",
+		"babel-core": "^6.26.3",
+		"browser-sync": "^2.26.7",
 		"css-mqpacker": "^7.0.0",
 		"cssnano": "^4.1.10",
-		"gulp": "4.0.1",
+		"gulp": "^4.0.1",
 		"gulp-concat": "^2.6.1",
 		"gulp-connect": "^5.7.0",
 		"gulp-deporder": "^1.1.0",
@@ -34,8 +37,5 @@
 	"browserslist": [
 		"last 2 versions",
 		"> 2%"
-	],
-	"devDependencies": {
-		"@types/gulp-connect": "^5.0.3"
-	}
+	]
 }

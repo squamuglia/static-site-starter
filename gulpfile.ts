@@ -1,17 +1,25 @@
+// Gulp
 const { task, src, dest, watch, series, parallel } = require('gulp');
-
 const newer = require('gulp-newer');
-const imagemin = require('gulp-imagemin');
-const htmlclean = require('gulp-htmlclean');
 const concat = require('gulp-concat');
-const deporder = require('gulp-deporder');
-const stripdebug = require('gulp-strip-debug');
-const uglify = require('gulp-uglify');
-const connect = require('gulp-connect');
+const browserSync = require('browser-sync').create();
 
+// HTML
+const htmlclean = require('gulp-htmlclean');
+
+// Image
+const imagemin = require('gulp-imagemin');
+
+// JS
+const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
+const stripdebug = require('gulp-strip-debug');
+const sourcemaps = require('gulp-sourcemaps');
+
+// CSS
 const postcss = require('gulp-postcss');
-const cssAssets = require('postcss-assets');
 const autoprefixer = require('autoprefixer');
+const cssAssets = require('postcss-assets');
 const cssMQPacker = require('css-mqpacker');
 const cssNano = require('cssnano');
 const cssPresetEnv = require('postcss-preset-env');
@@ -22,46 +30,45 @@ const cssCustomMedia = require('postcss-custom-media');
 const discardComments = require('postcss-discard-comments');
 
 const dev = process.env.NODE_ENV !== 'production';
-const folder = { src: 'src/', dist: 'dist/' };
+const source = 'src/',
+	dist = 'dist/';
 
-task('image', () => {
-	const out = folder.dist + 'assets/';
+task('assets', () => {
+	const out = dist + 'assets/';
 
-	return src(folder.src + 'assets/**/*')
+	return src(source + 'assets/**/*')
 		.pipe(newer(out))
 		.pipe(imagemin({ optimizationLevel: 5 }))
 		.pipe(dest(out))
-		.pipe(connect.reload());
+		.pipe(browserSync.stream({ match: 'assets/**/*' }));
 });
 
 task(
 	'html',
-	series(parallel('image'), () => {
-		const out = folder.dist;
-
-		let page = src(folder.src + '*.html').pipe(newer(out));
-		page = page.pipe(htmlclean());
-
-		return page.pipe(dest(out)).pipe(connect.reload());
-	})
+	series(parallel('assets'), () =>
+		src(source + '*.html')
+			.pipe(newer(dist))
+			.pipe(htmlclean())
+			.pipe(dest(dist))
+			.pipe(browserSync.stream({ match: '*.html' }))
+	)
 );
 
-task('js', () => {
-	let jsbuild = src(folder.src + 'js/**/*')
-		.pipe(deporder())
-		.pipe(concat('index.js'));
-
-	if (!dev) {
-		jsbuild = jsbuild.pipe(stripdebug()).pipe(uglify());
-	}
-
-	return jsbuild.pipe(dest(folder.dist)).pipe(connect.reload());
-});
+task('js', () =>
+	src(source + 'js/**/*')
+		.pipe(sourcemaps.init())
+		.pipe(babel({ presets: ['@babel/preset-env'] }))
+		.pipe(uglify())
+		.pipe(concat('index.js'))
+		.pipe(sourcemaps.write('/maps'))
+		.pipe(dest(dist))
+		.pipe(browserSync.stream({ match: 'js/**/*' }))
+);
 
 task(
 	'css',
-	series(parallel('image'), () =>
-		src(folder.src + 'styles/index.css')
+	series(parallel('assets'), () =>
+		src(source + 'styles/index.css')
 			.pipe(
 				postcss([
 					cssImport,
@@ -80,20 +87,29 @@ task(
 					cssNano,
 				])
 			)
-			.pipe(dest(folder.dist))
-			.pipe(connect.reload())
+			.pipe(dest(dist))
+			.pipe(browserSync.stream({ match: 'styles/**/*' }))
 	)
 );
 
-task('connect', () => connect.server({ root: 'dist', livereload: true }));
+task(
+	'serve',
+	series('css', (done) => {
+		browserSync.init({ server: dist });
 
-task('watch', () => {
-	watch([folder.src + 'assets/**/*'], 'image');
-	watch([folder.src + '*.html'], 'html');
-	watch([folder.src + 'js/**/*'], 'js');
-	watch([folder.src + 'styles/**/*'], 'css');
-});
+		watch([source + 'assets/**/*'], series('assets'));
+		watch([source + 'styles/**/*'], series('css'));
+		watch([source + 'js/**/*'], series('js'));
+		watch([source + '*.html'], series('html'));
 
-task('build', parallel('html', 'css', 'js'));
+		watch(source + 'styles/**/*').on('change', browserSync.reload);
+		watch(source + 'js/**/*').on('change', browserSync.reload);
+		watch(source + '*.html').on('change', browserSync.reload);
 
-task('default', series('build', 'connect', 'watch'));
+		done();
+	})
+);
+
+task('build', parallel('html', 'css', 'js', 'assets'), (done) => done());
+
+task('default', series('build', 'serve'), (done) => done());
