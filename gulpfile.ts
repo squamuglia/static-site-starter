@@ -25,6 +25,7 @@ const cssCalc = require('postcss-calc');
 const cssCustomMedia = require('postcss-custom-media');
 const discardComments = require('postcss-discard-comments');
 
+// Source and output folders
 const input = 'src/';
 const output = 'output/';
 
