@@ -27,7 +27,7 @@ const discardComments = require('postcss-discard-comments');
 
 // Source and output folders
 const input = 'src/';
-const output = 'output/';
+const output = 'dist/';
 
 task('assets', () => {
 	const out = output + 'assets/';
