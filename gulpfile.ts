@@ -34,12 +34,7 @@ task('assets', () => {
 
 	return src(input + 'assets/**/*')
 		.pipe(newer(out))
-		.pipe(
-			imagemin([
-				imagemin.mozjpeg({ quality: 75, progressive: true }),
-				imagemin.optipng({ optimizationLevel: 5 }),
-			])
-		)
+		.pipe(imagemin())
 		.pipe(dest(out))
 		.pipe(browserSync.stream({ match: 'assets/**/*' }));
 });
