@@ -1,4 +1,7 @@
 /node_modules
 /dist
-*.log
+/build
+.cache
+.now
 .DS_Store
+*.zip
