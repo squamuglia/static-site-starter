@@ -1,0 +1,18 @@
+:root {
+  --black: rgba(0, 0, 0, 0.85);
+  --white: #fff;
+}
+
+.c-white {
+  color: var(--white)
+}
+.bg-white {
+  background-color: var(--white)
+}
+
+.c-black {
+  color: var(--black)
+}
+.bg-black {
+  background-color: var(--black)
+}

@@ -1,0 +1,3 @@
+@custom-media --s (min-width: 600px); 
+@custom-media --m (min-width: 767px); 
+@custom-media --l (min-width: 1200px);

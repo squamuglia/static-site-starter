@@ -3,19 +3,15 @@ const { task, src, dest, watch, series, parallel } = require('gulp');
 const newer = require('gulp-newer');
 const concat = require('gulp-concat');
 const browserSync = require('browser-sync').create();
-
 // HTML
 const htmlclean = require('gulp-htmlclean');
-
-// Image
+// Assets
 const imagemin = require('gulp-imagemin');
-
 // JS
 const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const stripdebug = require('gulp-strip-debug');
 const sourcemaps = require('gulp-sourcemaps');
-
 // CSS
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
@@ -29,16 +25,20 @@ const cssCalc = require('postcss-calc');
 const cssCustomMedia = require('postcss-custom-media');
 const discardComments = require('postcss-discard-comments');
 
-const dev = process.env.NODE_ENV !== 'production';
-const source = 'src/',
-	dist = 'dist/';
+const input = 'src/';
+const output = 'output/';
 
 task('assets', () => {
-	const out = dist + 'assets/';
+	const out = output + 'assets/';
 
-	return src(source + 'assets/**/*')
+	return src(input + 'assets/**/*')
 		.pipe(newer(out))
-		.pipe(imagemin({ optimizationLevel: 5 }))
+		.pipe(
+			imagemin([
+				imagemin.mozjpeg({ quality: 75, progressive: true }),
+				imagemin.optipng({ optimizationLevel: 5 }),
+			])
+		)
 		.pipe(dest(out))
 		.pipe(browserSync.stream({ match: 'assets/**/*' }));
 });
@@ -46,30 +46,31 @@ task('assets', () => {
 task(
 	'html',
 	series(parallel('assets'), () =>
-		src(source + '*.html')
-			.pipe(newer(dist))
+		src(input + '*.html')
+			.pipe(newer(output))
 			.pipe(htmlclean())
-			.pipe(dest(dist))
+			.pipe(dest(output))
 			.pipe(browserSync.stream({ match: '*.html' }))
 	)
 );
 
 task('js', () =>
-	src(source + 'js/**/*')
+	src(input + 'js/**/*')
 		.pipe(sourcemaps.init())
 		.pipe(babel({ presets: ['@babel/preset-env'] }))
 		.pipe(uglify())
 		.pipe(concat('index.js'))
 		.pipe(sourcemaps.write('/maps'))
-		.pipe(dest(dist))
+		.pipe(dest(output))
 		.pipe(browserSync.stream({ match: 'js/**/*' }))
 );
 
 task(
 	'css',
 	series(parallel('assets'), () =>
-		src(source + 'styles/index.css')
+		src(input + 'styles/index.css')
 			.pipe(
+				// Order is important here
 				postcss([
 					cssImport,
 					cssNested,
@@ -87,7 +88,7 @@ task(
 					cssNano,
 				])
 			)
-			.pipe(dest(dist))
+			.pipe(dest(output))
 			.pipe(browserSync.stream({ match: 'styles/**/*' }))
 	)
 );
@@ -95,21 +96,21 @@ task(
 task(
 	'serve',
 	series('css', (done) => {
-		browserSync.init({ server: dist });
-
-		watch([source + 'assets/**/*'], series('assets'));
-		watch([source + 'styles/**/*'], series('css'));
-		watch([source + 'js/**/*'], series('js'));
-		watch([source + '*.html'], series('html'));
-
-		watch(source + 'styles/**/*').on('change', browserSync.reload);
-		watch(source + 'js/**/*').on('change', browserSync.reload);
-		watch(source + '*.html').on('change', browserSync.reload);
+		browserSync.init({ server: output });
+		// Watch these things and rebuild them when they change
+		watch([input + 'assets/**/*'], series('assets'));
+		watch([input + 'styles/**/*'], series('css'));
+		watch([input + 'js/**/*'], series('js'));
+		watch([input + '*.html'], series('html'));
+		// Refresh when these things change
+		watch(input + 'styles/**/*').on('change', browserSync.reload);
+		watch(input + 'js/**/*').on('change', browserSync.reload);
+		watch(input + '*.html').on('change', browserSync.reload);
 
 		done();
 	})
 );
 
+// Public tasks
 task('build', parallel('html', 'css', 'js', 'assets'), (done) => done());
-
 task('default', series('build', 'serve'), (done) => done());

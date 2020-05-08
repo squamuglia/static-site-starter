@@ -1,3 +1,6 @@
+@import 'vars/breakpoints';
+@import 'vars/colors';
+
 @import 'lib/reset';
 @import 'lib/display';
 @import 'lib/positioning';
