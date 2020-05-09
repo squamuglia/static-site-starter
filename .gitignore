@@ -5,5 +5,4 @@
 .now
 .DS_Store
 *.zip
-# Local Netlify folder
 .netlify
