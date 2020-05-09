@@ -11,7 +11,7 @@ import imagemin = require('gulp-imagemin');
 import babel from 'gulp-babel';
 import uglify from 'gulp-uglify';
 import sourcemaps from 'gulp-sourcemaps';
-import ts from 'gulp-typescript';
+import { createProject } from 'gulp-typescript';
 // CSS
 import postcss from 'gulp-postcss';
 import autoprefixer from 'autoprefixer';
@@ -26,7 +26,7 @@ import cssCustomMedia from 'postcss-custom-media';
 import discardComments from 'postcss-discard-comments';
 
 const browserSync = create();
-const typescript = ts.createProject('tsconfig.json');
+const typescript = createProject('tsconfig.json');
 
 // Source and output folders
 const input = 'src/';
