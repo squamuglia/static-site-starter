@@ -26,6 +26,7 @@
 		"gulp-postcss": "^8.0.0",
 		"gulp-sourcemaps": "^2.6.5",
 		"gulp-strip-debug": "^3.0.0",
+		"gulp-typescript": "^6.0.0-alpha.1",
 		"gulp-uglify": "^3.0.2",
 		"postcss-assets": "^5.0.0",
 		"postcss-calc": "^7.0.2",
@@ -35,7 +36,8 @@
 		"postcss-nested": "^4.2.1",
 		"postcss-preset-env": "^6.7.0",
 		"rimraf": "^3.0.2",
-		"ts-node": "^8.10.1"
+		"ts-node": "^8.10.1",
+		"typescript": "^3.8.3"
 	},
 	"browserslist": [
 		"last 2 versions",

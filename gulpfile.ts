@@ -12,6 +12,8 @@ const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const stripdebug = require('gulp-strip-debug');
 const sourcemaps = require('gulp-sourcemaps');
+const typescript = require('gulp-typescript');
+const ts = typescript.createProject('tsconfig.json');
 // CSS
 const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
@@ -29,15 +31,13 @@ const discardComments = require('postcss-discard-comments');
 const input = 'src/';
 const output = 'dist/';
 
-task('assets', () => {
-	const out = output + 'assets/';
-
-	return src(input + 'assets/**/*')
-		.pipe(newer(out))
+task('assets', () =>
+	src(input + 'assets/**/*')
+		.pipe(newer(output + 'assets/'))
 		.pipe(imagemin())
-		.pipe(dest(out))
-		.pipe(browserSync.stream({ match: 'assets/**/*' }));
-});
+		.pipe(dest(output + 'assets/'))
+		.pipe(browserSync.stream({ match: 'assets/**/*' }))
+);
 
 task(
 	'html',
@@ -53,6 +53,7 @@ task(
 task('js', () =>
 	src(input + 'js/**/*')
 		.pipe(sourcemaps.init())
+		.pipe(ts())
 		.pipe(babel({ presets: ['@babel/preset-env'] }))
 		.pipe(uglify())
 		.pipe(concat('index.js'))
