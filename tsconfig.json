@@ -7,6 +7,6 @@
 		"esModuleInterop": true,
 		"sourceMap": true
 	},
-	"exclude": ["node_modules", "*.html"],
+	"exclude": ["node_modules", "src/*.html"],
 	"include": ["gulpfile.ts", "src/**/*"]
 }
