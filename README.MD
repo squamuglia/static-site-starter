@@ -4,6 +4,8 @@ This starter uses 🥤Gulp 4 and is designed for static HTML sites. Build your p
 
 Includes typescript support with source mapping, image optimization, PostCSS and some atomic css classes that you can totally delete.
 
+Comes with few opinions that are easy to delete, and a Gulpfile with comments that make it easy to modify.
+
 ### Getting started
 
 ```

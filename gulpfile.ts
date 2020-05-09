@@ -68,7 +68,11 @@ task(
 	series(parallel('assets'), () =>
 		src(input + 'styles/index.css')
 			.pipe(
-				// Order is important here
+				/**
+				 * Order is important for PostCSS plugins.
+				 * If you don't like PostCSS, delete these
+				 * plugins and add your own :)
+				 */
 				postcss([
 					cssImport,
 					cssNested,
