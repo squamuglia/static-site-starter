@@ -106,9 +106,9 @@ task(
 		watch([input + 'js/**/*'], series('js'));
 		watch([input + '*.html'], series('html'));
 		// Refresh when these things change
-		watch(input + '*.css').on('change', browserSync.reload);
-		watch(input + '*.js').on('change', browserSync.reload);
-		watch(input + '*.html').on('change', browserSync.reload);
+		watch(output + '*.css').on('change', browserSync.reload);
+		watch(output + '*.js').on('change', browserSync.reload);
+		watch(output + '*.html').on('change', browserSync.reload);
 
 		done();
 	})
