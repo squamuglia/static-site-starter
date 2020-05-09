@@ -1,31 +1,32 @@
 // Gulp
-const { task, src, dest, watch, series, parallel } = require('gulp');
-const newer = require('gulp-newer');
-const concat = require('gulp-concat');
-const browserSync = require('browser-sync').create();
+import { task, src, dest, watch, series, parallel } from 'gulp';
+import newer from 'gulp-newer';
+import concat from 'gulp-concat';
+import { create } from 'browser-sync';
 // HTML
-const htmlclean = require('gulp-htmlclean');
+import htmlclean = require('gulp-htmlclean');
 // Assets
-const imagemin = require('gulp-imagemin');
+import imagemin = require('gulp-imagemin');
 // JS
-const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
-const stripdebug = require('gulp-strip-debug');
-const sourcemaps = require('gulp-sourcemaps');
-const typescript = require('gulp-typescript');
-const ts = typescript.createProject('tsconfig.json');
+import babel from 'gulp-babel';
+import uglify from 'gulp-uglify';
+import sourcemaps from 'gulp-sourcemaps';
+import ts from 'gulp-typescript';
 // CSS
-const postcss = require('gulp-postcss');
-const autoprefixer = require('autoprefixer');
-const cssAssets = require('postcss-assets');
-const cssMQPacker = require('css-mqpacker');
-const cssNano = require('cssnano');
-const cssPresetEnv = require('postcss-preset-env');
-const cssImport = require('postcss-import');
-const cssNested = require('postcss-nested');
-const cssCalc = require('postcss-calc');
-const cssCustomMedia = require('postcss-custom-media');
-const discardComments = require('postcss-discard-comments');
+import postcss from 'gulp-postcss';
+import autoprefixer from 'autoprefixer';
+import cssAssets from 'postcss-assets';
+import cssMQPacker from 'css-mqpacker';
+import cssNano from 'cssnano';
+import cssPresetEnv from 'postcss-preset-env';
+import cssImport from 'postcss-import';
+import cssNested from 'postcss-nested';
+import cssCalc from 'postcss-calc';
+import cssCustomMedia from 'postcss-custom-media';
+import discardComments from 'postcss-discard-comments';
+
+const browserSync = create();
+const typescript = ts.createProject('tsconfig.json');
 
 // Source and output folders
 const input = 'src/';
@@ -53,8 +54,8 @@ task(
 task('js', () =>
 	src(input + 'js/**/*')
 		.pipe(sourcemaps.init())
-		.pipe(ts())
-		.pipe(babel({ presets: ['@babel/preset-env'] }))
+		.pipe(typescript())
+		.pipe(babel({ presets: ['@babel/preset-env', '@babel/preset-typescript'] }))
 		.pipe(uglify())
 		.pipe(concat('index.js'))
 		.pipe(sourcemaps.write('/maps'))
@@ -80,6 +81,7 @@ task(
 						},
 					}),
 					cssCalc,
+					discardComments,
 					cssAssets({ loadPaths: ['assets/'] }),
 					cssMQPacker,
 					cssNano,
