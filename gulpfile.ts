@@ -43,7 +43,7 @@ task('assets', () =>
 task(
 	'html',
 	series(parallel('assets'), () =>
-		src(input + '*.html')
+		src(input + 'pages/**/*')
 			.pipe(newer(output))
 			.pipe(htmlclean())
 			.pipe(dest(output))
@@ -99,19 +99,12 @@ task(
 task(
 	'serve',
 	series('css', (done) => {
-		browserSync.init({
-			server: {
-				baseDir: output,
-				serveStaticOptions: {
-					extensions: ['html'],
-				},
-			},
-		});
+		browserSync.init({ server: output });
 		// Watch these things and rebuild them when they change
 		watch([input + 'assets/**/*'], series('assets'));
 		watch([input + 'styles/**/*'], series('css'));
 		watch([input + 'js/**/*'], series('js'));
-		watch([input + '*.html'], series('html'));
+		watch([input + 'pages/**/*'], series('html'));
 		// Refresh when these things change
 		watch(output + '*.css').on('change', browserSync.reload);
 		watch(output + '*.js').on('change', browserSync.reload);
