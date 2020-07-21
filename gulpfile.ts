@@ -99,7 +99,14 @@ task(
 task(
 	'serve',
 	series('css', (done) => {
-		browserSync.init({ server: output });
+		browserSync.init({
+			server: {
+				baseDir: output,
+				serveStaticOptions: {
+					extensions: ['html'],
+				},
+			},
+		});
 		// Watch these things and rebuild them when they change
 		watch([input + 'assets/**/*'], series('assets'));
 		watch([input + 'styles/**/*'], series('css'));
