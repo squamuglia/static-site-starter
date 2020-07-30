@@ -4,9 +4,9 @@ import newer from 'gulp-newer';
 import concat from 'gulp-concat';
 import { create } from 'browser-sync';
 // HTML
-import htmlclean = require('gulp-htmlclean');
+import htmlclean from 'gulp-htmlclean';
 // Assets
-import imagemin = require('gulp-imagemin');
+import imagemin from 'gulp-imagemin';
 // JS
 import babel from 'gulp-babel';
 import uglify from 'gulp-uglify';
@@ -16,6 +16,7 @@ import { createProject } from 'gulp-typescript';
 import postcss from 'gulp-postcss';
 import autoprefixer from 'autoprefixer';
 import cssAssets from 'postcss-assets';
+import purgecss from '@fullhuman/postcss-purgecss';
 import cssMQPacker from 'css-mqpacker';
 import cssNano from 'cssnano';
 import cssPresetEnv from 'postcss-preset-env';
@@ -35,7 +36,8 @@ const output = 'dist/';
 task('assets', () =>
 	src(input + 'assets/**/*')
 		.pipe(newer(output + 'assets/'))
-		.pipe(imagemin())
+		// Change these settings to adjust image compression
+		.pipe(imagemin([imagemin.mozjpeg({ quality: 75, progressive: true })]))
 		.pipe(dest(output + 'assets/'))
 		.pipe(browserSync.stream({ match: 'assets/**/*' }))
 );
@@ -86,6 +88,9 @@ task(
 					}),
 					cssCalc,
 					discardComments,
+					purgecss({
+						content: ['./src/pages/**/*.html'],
+					}),
 					cssAssets({ loadPaths: ['assets/'] }),
 					cssMQPacker,
 					cssNano,
